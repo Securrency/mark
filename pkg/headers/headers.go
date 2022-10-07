@@ -86,8 +86,12 @@ func modifyHeader(path string) (string, error) {
 	if header_err != nil {
 		return "", header_err
 	}
+	default_disclaimer, disclaimer_err := os.ReadFile("./scripts/default-disclaimer")
+	if header_err != nil {
+		return "", disclaimer_err
+	}
 
-	content = string(default_header) + "\n" + strings.Title(strings.Join(parents, "")) + attachments + title + result
+	content = string(default_header) + "\n" + strings.Title(strings.Join(parents, "")) + attachments + title + string(default_disclaimer) + "\n" + result
 
 	err := ioutil.WriteFile(path, []byte(content), 0644)
 	if err != nil {
