@@ -118,8 +118,6 @@ func resolveLink(
 				linkMeta.Title,
 			)
 		}
-		fmt.Print(result)
-
 		if result == "" {
 			return "", nil
 		}
@@ -172,14 +170,12 @@ func getConfluenceLink(
 	api *confluence.API,
 	space, title string,
 ) (string, error) {
-	fmt.Print("\nflagGGGGGGG\n")
 	link := fmt.Sprintf(
 		"%s/display/%s/%s",
 		api.BaseURL,
 		space,
 		url.QueryEscape(title),
 	)
-	fmt.Print(link)
 
 	page, err := api.FindPage(space, title, "page")
 	if err != nil {

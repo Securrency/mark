@@ -62,8 +62,18 @@ func modifyHeader(path string) (string, error) {
 
 	scanner := bufio.NewScanner(strings.NewReader(content))
 
+	default_header, header_err := os.ReadFile("./scripts/default-header")
+	if header_err != nil {
+		return "", header_err
+	}
+
+	default_disclaimer, disclaimer_err := os.ReadFile("./scripts/default-disclaimer")
+	if disclaimer_err != nil {
+		return "", disclaimer_err
+	}
+
 	for scanner.Scan() {
-		if strings.HasPrefix(scanner.Text(), "<!--") {
+		if strings.HasPrefix(scanner.Text(), "<!--") || strings.HasSuffix(scanner.Text(), "-->") || strings.HasPrefix(scanner.Text(), ":box:") || strings.HasPrefix(scanner.Text(), "     Template:") || strings.HasPrefix(scanner.Text(), "     Icon:") || strings.HasPrefix(scanner.Text(), "     Name:") || strings.HasPrefix(scanner.Text(), "     Title:") {
 			continue
 		} else {
 			result += scanner.Text() + "\n"
@@ -82,16 +92,7 @@ func modifyHeader(path string) (string, error) {
 
 	title := generateTitle(path)
 
-	default_header, header_err := os.ReadFile("./scripts/default-header")
-	if header_err != nil {
-		return "", header_err
-	}
-	default_disclaimer, disclaimer_err := os.ReadFile("./scripts/default-disclaimer")
-	if header_err != nil {
-		return "", disclaimer_err
-	}
-
-	content = string(default_header) + "\n" + strings.Title(strings.Join(parents, "")) + attachments + title + string(default_disclaimer) + "\n" + result
+	content = string(default_header) + "\n" + strings.Title(strings.Join(parents, "")) + attachments + title + "\n" + string(default_disclaimer) + "\n" + result
 
 	err := ioutil.WriteFile(path, []byte(content), 0644)
 	if err != nil {
