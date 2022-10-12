@@ -11,8 +11,18 @@ import (
 	"strings"
 )
 
-func Headers_entrypoint() {
+var DisclaimerPath = ""
+var HeadersPath = ""
+
+func Headers_entrypoint(headersPath string, disclaimerPath string) {
+	if disclaimerPath != "" {
+		DisclaimerPath = disclaimerPath
+	}
+	if headersPath != "" {
+		HeadersPath = headersPath
+	}
 	scan(".")
+
 }
 func readfile(file string) (string, error) {
 
@@ -59,15 +69,22 @@ func modifyHeader(path string) (string, error) {
 	if file_err != nil {
 		return "", file_err
 	}
-
 	scanner := bufio.NewScanner(strings.NewReader(content))
 
-	default_header, header_err := os.ReadFile("./scripts/default-header")
+	default_headers_path := "./scripts/default-headers"
+	if HeadersPath != "" {
+		default_headers_path = HeadersPath
+	}
+	default_header, header_err := os.ReadFile(default_headers_path)
 	if header_err != nil {
 		return "", header_err
 	}
+	disclaimer_default_path := "./scripts/default-disclaimer"
 
-	default_disclaimer, disclaimer_err := os.ReadFile("./scripts/default-disclaimer")
+	if DisclaimerPath != "" {
+		disclaimer_default_path = DisclaimerPath
+	}
+	default_disclaimer, disclaimer_err := os.ReadFile(disclaimer_default_path)
 	if disclaimer_err != nil {
 		return "", disclaimer_err
 	}
@@ -113,6 +130,5 @@ func walkHandler(path string, info os.FileInfo, err error) error {
 func scan(path string) {
 	err := filepath.Walk(path, walkHandler)
 	if err != nil {
-		fmt.Println(err)
 	}
 }

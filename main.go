@@ -38,6 +38,8 @@ type Flags struct {
 	Config         string `docopt:"--config"`
 	Ci             bool   `docopt:"--ci"`
 	Space          string `docopt:"--space"`
+	MetaData       string `docopt:"--meta"`
+	Disclaimer     string `docopt:"--disclaimer"`
 }
 
 const (
@@ -67,6 +69,8 @@ Options:
                         Supports file globbing patterns (needs to be quoted).
   -k                   Lock page editing to current user only to prevent accidental
                         manual edits over Confluence Web UI.
+  --meta <path>        Use specified metadata for updating Confluence page.
+  --disclaimer <path>   Add discalimer note for each confluence page.
   --space <space>      Use specified space key. If not specified space ley must
                         be set in a page metadata.
   --drop-h1            Don't include H1 headings in Confluence output.
@@ -88,7 +92,6 @@ Options:
 )
 
 func main() {
-	headers.Headers_entrypoint()
 
 	cmd, err := docopt.ParseArgs(os.ExpandEnv(usage), nil, version)
 	if err != nil {
@@ -116,6 +119,12 @@ func main() {
 			),
 		)
 		log.GetLogger().SetOutput(os.Stderr)
+	}
+
+	if (flags.MetaData != "") || (flags.Disclaimer != "") {
+		headers.Headers_entrypoint(flags.MetaData, flags.Disclaimer)
+	} else {
+		headers.Headers_entrypoint("", "")
 	}
 
 	config, err := LoadConfig(flags.Config)
