@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -376,12 +377,12 @@ func processFile(file string, api *confluence.API, flags Flags, pageID string, u
 		content := string([]byte((markdown)[:]))
 		scanner := bufio.NewScanner(strings.NewReader(content))
 
+		re := regexp.MustCompile(`!\[(?P<title>.*)\]\((?P<path>.*)\)`)
 		for scanner.Scan() {
-			if strings.HasPrefix(scanner.Text(), "![") {
-				attachmentPath := strings.Split(strings.Split(scanner.Text(), "(")[1], ")")[0]
-				meta.Attachments = []string{attachmentPath}
-			} else {
-				continue
+			line := scanner.Text()
+			matches := re.FindStringSubmatch(line)
+			if len(matches) > 0 {
+				meta.Attachments = append(meta.Attachments, matches[2])
 			}
 		}
 	}
