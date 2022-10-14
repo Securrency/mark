@@ -501,6 +501,7 @@ mark -h | --help
     Alternative option for `base_url` config field.
 - `-f <file>` — Use specified markdown file(s) for converting to html. Supports file globbing patterns (needs to be quoted).
 - `-c <path>` or `--config <path>` — Specify a path to the configuration file.
+- `--no-attachment`  - Use it to prevent auto collect for the attachments.
 - `-k` — Lock page editing to current user only to prevent accidental
     manual edits over Confluence Web UI.
 - `--space <space>` - Use specified space key. If not specified space ley must be set in a page metadata.
@@ -524,6 +525,24 @@ password = "password-or-api-key-for-confluence-cloud"
 base_url = "http://confluence.local"
 h1_title = true
 h1_drop = true
+space = ""
+
+parent = []
+
+disclaimer = '''
+<!-- Macro: :box:([^:]+):([^:]*):(.+):
+     Template: ac:box
+     Icon: yes
+     Name: ${1}
+     Title: ${2}
+     Body: ${3} -->
+
+<p><ac:structured-macro ac:name="note">
+<ac:parameter ac:name="icon">true</ac:parameter>
+<ac:parameter ac:name="title">Attention!</ac:parameter>
+<ac:rich-text-body>This document is automatically synced by <code>mark</code> tool. <b>All manual changes will be overridden!</b></ac:rich-text-body>
+</ac:structured-macro></p>
+'''
 ```
 
 **NOTE**: Labels aren't supported when using `minor-edit`!

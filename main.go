@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/docopt/docopt-go"
@@ -37,6 +39,7 @@ type Flags struct {
 	Config         string `docopt:"--config"`
 	Ci             bool   `docopt:"--ci"`
 	Space          string `docopt:"--space"`
+	Attachment     bool   `docopt:"--no-attachment"`
 }
 
 const (
@@ -80,6 +83,7 @@ Options:
                         [default: auto]
   -c --config <path>   Use the specified configuration file.
                         [default: $HOME/.config/mark]
+  --no-attachment      Use it to prevent auto collect for the attachments.
   --ci                 Runs on CI mode. It won't fail if files are not found.
   -h --help            Show this message.
   -v --version         Show version.
@@ -120,12 +124,20 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if ! flags.TitleFromH1 && config.H1Title {
+	if !flags.TitleFromH1 && config.H1Title {
 		flags.TitleFromH1 = true
 	}
 
-	if ! flags.DropH1 && config.H1Drop {
+	if !flags.DropH1 && config.H1Drop {
 		flags.DropH1 = true
+	}
+
+	if flags.Attachment {
+		flags.Attachment = true
+	}
+
+	if flags.Space == "" {
+		flags.Space = config.Space
 	}
 
 	creds, err := GetCredentials(flags, config)
@@ -168,13 +180,7 @@ func main() {
 	}
 }
 
-func processFile(
-	file string,
-	api *confluence.API,
-	flags Flags,
-	pageID string,
-	username string,
-) *confluence.PageInfo {
+func processFile(file string, api *confluence.API, flags Flags, pageID string, username string) *confluence.PageInfo {
 	markdown, err := ioutil.ReadFile(file)
 	if err != nil {
 		log.Fatal(err)
@@ -217,11 +223,35 @@ func processFile(
 		meta.Title = mark.ExtractDocumentLeadingH1(markdown)
 	}
 
-	if meta.Title == "" {
+	path := strings.Split(file, "/")
+	title := strings.Replace(path[len(path)-1], ".md", "", -1)
+
+	if meta.Title == "" && title == "" {
 		log.Fatal(
 			`page title is not set ('Title' header is not set ` +
 				`and '--title-from-h1' option and 'h1_title' config is not set or there is no H1 in the file)`,
 		)
+	} else {
+		meta.Title = strings.Title(title)
+	}
+
+	config, _ := LoadConfig(flags.Config)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	additional_parents := strings.Split(file, "/")
+	additional_parents = additional_parents[0 : len(additional_parents)-1]
+	for i := 0; i < len(additional_parents); i++ {
+		additional_parents[i] = fmt.Sprintf("%s-ADR", additional_parents[i])
+	}
+	//change the first letter of each parent to uppercase
+	for i := 0; i < len(additional_parents); i++ {
+		additional_parents[i] = strings.Title(additional_parents[i])
+	}
+
+	if meta.Parents == nil {
+		meta.Parents = append(config.Parent, additional_parents...)
 	}
 
 	stdlib, err := stdlib.New(api)
@@ -289,8 +319,8 @@ func processFile(
 			)
 			markdown = mark.DropDocumentLeadingH1(markdown)
 		}
-	
-			fmt.Println(mark.CompileMarkdown(markdown, stdlib))
+
+		fmt.Println(mark.CompileMarkdown(markdown, stdlib))
 		os.Exit(0)
 	}
 
@@ -342,6 +372,20 @@ func processFile(
 		target = page
 	}
 
+	if meta.Attachments == nil && !flags.Attachment {
+		content := string([]byte((markdown)[:]))
+		scanner := bufio.NewScanner(strings.NewReader(content))
+
+		for scanner.Scan() {
+			if strings.HasPrefix(scanner.Text(), "![") {
+				attachmentPath := strings.Split(strings.Split(scanner.Text(), "(")[1], ")")[0]
+				meta.Attachments = []string{attachmentPath}
+			} else {
+				continue
+			}
+		}
+	}
+
 	attaches, err := mark.ResolveAttachments(
 		api,
 		target,
@@ -353,6 +397,10 @@ func processFile(
 	}
 
 	markdown = mark.CompileAttachmentLinks(markdown, attaches)
+
+	if config.Disclaimer != "" {
+		markdown = []uint8(config.Disclaimer + string([]byte(mark.CompileAttachmentLinks(markdown, attaches)[:])))
+	}
 
 	if flags.DropH1 {
 		log.Info(
@@ -385,7 +433,6 @@ func processFile(
 
 		html = buffer.String()
 	}
-
 	err = api.UpdatePage(target, html, flags.MinorEdit, meta.Labels)
 	if err != nil {
 		log.Fatal(err)
@@ -404,6 +451,5 @@ func processFile(
 			log.Fatal(err)
 		}
 	}
-
 	return target
 }
