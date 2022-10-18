@@ -241,8 +241,7 @@ func processFile(file string, api *confluence.API, flags Flags, pageID string, u
 		log.Fatal(err)
 	}
 
-	additional_parents := strings.Split(file, "/")
-	additional_parents = additional_parents[1 : len(additional_parents)-1]
+	additional_parents := strings.Split(filepath.Dir(p), "/")
 	for i := 0; i < len(additional_parents); i++ {
 		additional_parents[i] = fmt.Sprintf("%s-ADR", additional_parents[i])
 	}
