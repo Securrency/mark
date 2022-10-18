@@ -40,7 +40,7 @@ type Flags struct {
 	Config         string `docopt:"--config"`
 	Ci             bool   `docopt:"--ci"`
 	Space          string `docopt:"--space"`
-	Attachment     bool   `docopt:"--no-attachment"`
+	Attachment     bool   `docopt:"--auto-attachment"`
 }
 
 const (
@@ -84,7 +84,8 @@ Options:
                         [default: auto]
   -c --config <path>   Use the specified configuration file.
                         [default: $HOME/.config/mark]
-  --no-attachment      Use it to prevent auto collect for the attachments.
+  --auto-attachment    Use it to prevent auto collect for the attachments.
+  						[default: true]
   --ci                 Runs on CI mode. It won't fail if files are not found.
   -h --help            Show this message.
   -v --version         Show version.
@@ -131,10 +132,6 @@ func main() {
 
 	if !flags.DropH1 && config.H1Drop {
 		flags.DropH1 = true
-	}
-
-	if flags.Attachment {
-		flags.Attachment = true
 	}
 
 	if flags.Space == "" {
@@ -243,7 +240,11 @@ func processFile(file string, api *confluence.API, flags Flags, pageID string, u
 	additional_parents := strings.Split(filepath.Dir(file), "/")
 
 	for i, parent := range additional_parents {
-		additional_parents[i] = fmt.Sprintf("%s-%s", strings.Title(parent), config.AppendParent)
+		if parent != "." {
+			additional_parents[i] = fmt.Sprintf("%s-%s", strings.Title(parent), config.AppendParent)
+		} else {
+			additional_parents = nil
+		}
 	}
 
 	if meta.Parents == nil {
@@ -368,7 +369,7 @@ func processFile(file string, api *confluence.API, flags Flags, pageID string, u
 		target = page
 	}
 
-	if meta.Attachments == nil && !flags.Attachment {
+	if meta.Attachments == nil && flags.Attachment {
 		content := string([]byte((markdown)[:]))
 		scanner := bufio.NewScanner(strings.NewReader(content))
 
