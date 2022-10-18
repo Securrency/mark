@@ -224,8 +224,7 @@ func processFile(file string, api *confluence.API, flags Flags, pageID string, u
 		meta.Title = mark.ExtractDocumentLeadingH1(markdown)
 	}
 
-	path := strings.Split(file, "/")
-	title := strings.Replace(path[len(path)-1], ".md", "", -1)
+	title := strings.Trim(filepath.Base(file), ".md")
 
 	if meta.Title == "" && title == "" {
 		log.Fatal(
@@ -241,13 +240,10 @@ func processFile(file string, api *confluence.API, flags Flags, pageID string, u
 		log.Fatal(err)
 	}
 
-	additional_parents := strings.Split(filepath.Dir(p), "/")
-	for i := 0; i < len(additional_parents); i++ {
-		additional_parents[i] = fmt.Sprintf("%s-ADR", additional_parents[i])
-	}
-	//change the first letter of each parent to uppercase
-	for i := 0; i < len(additional_parents); i++ {
-		additional_parents[i] = strings.Title(additional_parents[i])
+	additional_parents := strings.Split(filepath.Dir(file), "/")
+
+	for i, parent := range additional_parents {
+		additional_parents[i] = fmt.Sprintf("%s-%s", strings.Title(parent), config.AppendParent)
 	}
 
 	if meta.Parents == nil {
