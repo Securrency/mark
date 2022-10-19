@@ -40,7 +40,7 @@ type Flags struct {
 	Config         string `docopt:"--config"`
 	Ci             bool   `docopt:"--ci"`
 	Space          string `docopt:"--space"`
-	Attachment     bool   `docopt:"--auto-attachment"`
+	AutoAttachment bool   `docopt:"--auto-attachment"`
 }
 
 const (
@@ -85,7 +85,7 @@ Options:
   -c --config <path>   Use the specified configuration file.
                         [default: $HOME/.config/mark]
   --auto-attachment    Use it to prevent auto collect for the attachments.
-  						[default: true]
+  						[default: false]
   --ci                 Runs on CI mode. It won't fail if files are not found.
   -h --help            Show this message.
   -v --version         Show version.
@@ -369,7 +369,7 @@ func processFile(file string, api *confluence.API, flags Flags, pageID string, u
 		target = page
 	}
 
-	if meta.Attachments == nil && flags.Attachment {
+	if meta.Attachments == nil && flags.AutoAttachment {
 		content := string([]byte((markdown)[:]))
 		scanner := bufio.NewScanner(strings.NewReader(content))
 
