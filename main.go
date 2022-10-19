@@ -85,7 +85,7 @@ Options:
   -c --config <path>   Use the specified configuration file.
                         [default: $HOME/.config/mark]
   --auto-attachment    Use it to prevent auto collect for the attachments.
-  						[default: false]
+  			[default: false]
   --ci                 Runs on CI mode. It won't fail if files are not found.
   -h --help            Show this message.
   -v --version         Show version.
