@@ -124,7 +124,9 @@ func ExtractMeta(data []byte) (*Meta, []byte, error) {
 	}
 
 	if meta == nil {
-		return nil, data, nil
+		meta = &Meta{}
+		meta.Type = "page" //Default if not specified
+		return meta, data, nil
 	}
 
 	return meta, data[offset:], nil

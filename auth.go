@@ -36,7 +36,7 @@ func GetCredentials(
 	if password == "" {
 		password = config.Password
 		if password == "" {
-			if ! flags.CompileOnly {
+			if !flags.CompileOnly {
 				return nil, errors.New(
 					"Confluence password should be specified using -p " +
 						"flag or be stored in configuration file",

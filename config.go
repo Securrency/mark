@@ -7,11 +7,16 @@ import (
 )
 
 type Config struct {
-	Username string `env:"MARK_USERNAME" toml:"username"`
-	Password string `env:"MARK_PASSWORD" toml:"password"`
-	BaseURL  string `env:"MARK_BASE_URL" toml:"base_url"`
-	H1Title  bool   `env:"MARK_H1_TITLE" toml:"h1_title"`
-	H1Drop   bool   `env:"MARK_H1_DROP"  toml:"h1_drop"`
+	Username     string   `env:"MARK_USERNAME"      toml:"username"`
+	Password     string   `env:"MARK_PASSWORD"      toml:"password"`
+	BaseURL      string   `env:"MARK_BASE_URL"      toml:"base_url"`
+	H1Title      bool     `env:"MARK_H1_TITLE"      toml:"h1_title"`
+	H1Drop       bool     `env:"MARK_H1_DROP"       toml:"h1_drop"`
+	Space        string   `env:"MARK_SPACE"         toml:"space"`
+	Parent       []string `env:"MARK_PARENT"        toml:"parent"`
+	Disclaimer   string   `env:"MARK_DISCLAIMER"    toml:"disclaimer"`
+	Title        string   `env:"MARK_TITLE"         toml:"title"`
+	AppendParent string   `env:"MARK_APPEND_PARENT" toml:"append_parent"`
 }
 
 func LoadConfig(path string) (*Config, error) {
