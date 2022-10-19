@@ -221,7 +221,7 @@ func processFile(file string, api *confluence.API, flags Flags, pageID string, u
 		meta.Title = mark.ExtractDocumentLeadingH1(markdown)
 	}
 
-	title := strings.Trim(filepath.Base(file), ".md")
+	title := strings.TrimSuffix(filepath.Base(file), ".md")
 
 	if meta.Title == "" && title == "" {
 		log.Fatal(
