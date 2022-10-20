@@ -228,6 +228,9 @@ func processFile(file string, api *confluence.API, flags Flags, pageID string, u
 			`page title is not set ('Title' header is not set ` +
 				`and '--title-from-h1' option and 'h1_title' config is not set or there is no H1 in the file)`,
 		)
+	}
+	if meta.Title != "" {
+		title = meta.Title
 	} else {
 		meta.Title = strings.Title(title)
 	}
